@@ -15,24 +15,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up Xcode
+      - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: 'latest-stable'
 
-      # Show Xcode version and available destinations
-      - name: Show Xcode info
+      # Clean build artifacts
+      - name: Clean Build Folder
         run: |
-          xcodebuild -version
-          xcodebuild -showsdks
-          xcrun simctl list devices available
+          xcodebuild clean -scheme "RickAndMorty"
 
-      - name: Build
-        env:
-          scheme: RickAndMorty
-          platform: iOS Simulator
+      # Build the project
+      - name: Build Project
         run: |
-          # Find a valid simulator
-          device=`xcrun simctl list devices available iPhone | grep -v '^--' | grep -v '^ --' | head -1 | sed -E 's/(.+)\((.+)\)/\2/'`
-          # Build
-          xcodebuild build -project RickAndMorty.xcodeproj -scheme "$scheme" -destination "platform=$platform,id=$device" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+          xcodebuild build \
+            -scheme "RickAndMorty" \
+            -sdk iphonesimulator \
+            CODE_SIGNING_ALLOWED=NO
