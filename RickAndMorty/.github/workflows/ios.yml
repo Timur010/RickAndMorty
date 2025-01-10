@@ -10,15 +10,28 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: macos-latest
+    strategy:
+      matrix:
+        xcode: ['latest-stable']
+        destination: ['platform=iOS Simulator,name=iPhone 14,OS=16.4']
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
+      # Add cache for CocoaPods
+      - name: Cache CocoaPods files
+        uses: actions/cache@v3
+        with:
+          path: Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: 'latest-stable'
+          xcode-version: ${{ matrix.xcode }}
 
       - name: Install SwiftLint
         run: brew install swiftlint
@@ -31,13 +44,27 @@ jobs:
           cd RickAndMorty
           pod install
 
+      # Add build number increment
+      - name: Increment Build Number
+        run: |
+          cd RickAndMorty
+          buildNumber=$(($GITHUB_RUN_NUMBER + 100))
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $buildNumber" "RickAndMorty/Info.plist"
+
       - name: Build
         run: |
           cd RickAndMorty
-          xcodebuild build -workspace RickAndMorty.xcworkspace -scheme RickAndMorty -destination 'platform=iOS Simulator,name=iPhone 14'
+          xcodebuild build -workspace RickAndMorty.xcworkspace -scheme RickAndMorty -destination "${{ matrix.destination }}" | xcpretty
 
       # This step will be enabled when you add tests
       # - name: Test
       #   run: |
       #     cd RickAndMorty
-      #     xcodebuild test -workspace RickAndMorty.xcworkspace -scheme RickAndMorty -destination 'platform=iOS Simulator,name=iPhone 14'
+      #     xcodebuild test -workspace RickAndMorty.xcworkspace -scheme RickAndMorty -destination "${{ matrix.destination }}" | xcpretty
+
+      # Add build summary
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "🎉 Build completed for Xcode ${{ matrix.xcode }}"
+          echo "📱 Tested on ${{ matrix.destination }}"
