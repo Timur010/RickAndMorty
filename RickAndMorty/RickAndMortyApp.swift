@@ -11,6 +11,7 @@ import SwiftUI
 struct RickAndMortyApp: App {
     @StateObject private var viewModel = CharactersViewModel()
 
+    var tip = 10
     var body: some Scene {
         WindowGroup {
             CharacterListView()

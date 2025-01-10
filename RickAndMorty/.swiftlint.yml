@@ -1,19 +1,94 @@
-disabled_rules:
-  - vertical_whitespace
-  - comment_spacing
-  - multiple_closures_with_trailing_closure
-  - duplicate_imports
+# SwiftLint Configuration File
 
+# Отключенные правила: если вы уверены, что эти правила вам не нужны.
+disabled_rules:
+  - vertical_whitespace # Убирает правило о пустых строках
+  - comment_spacing # Пропускает ошибки в форматировании комментариев
+  - multiple_closures_with_trailing_closure # Позволяет несколько trailing closures
+  - duplicate_imports # Отключает предупреждения о повторных импортируемых модулях
+
+# Пути, которые включены для анализа
 included:
   - RickAndMorty
+
+# Пути, исключённые из анализа
 excluded:
-  - Pods
-  - DerivedData
+  - Pods # Исключение для Pods
+  - DerivedData # Исключение временных данных сборки
+  - Carthage # Если вы используете Carthage
+  - .git # Исключение из проверки папки Git
 
+# Максимальная длина строки
 line_length:
-  warning: 120
-  error: 200
+  warning: 120 # Предупреждение, если длина строки превышает 120 символов
+  error: 200 # Ошибка, если длина строки превышает 200 символов
+  ignores_comments: true # Игнорирует комментарии
+  ignores_urls: true # Игнорирует длинные ссылки (например, URL)
 
+# Максимальная длина тела функции
 function_body_length:
-  warning: 50
-  error: 100
+  warning: 40 # Предупреждение, если функция превышает 40 строк
+  error: 80 # Ошибка, если функция превышает 80 строк
+  ignores_comments: true # Игнорирует строки комментариев
+  ignores_closures: true # Игнорирует замыкания внутри функции
+
+# Максимальная длина файла
+file_length:
+  warning: 300 # Предупреждение, если файл превышает 300 строк
+  error: 500 # Ошибка, если файл превышает 500 строк
+  ignores_comments: true # Игнорирует строки комментариев
+
+# Проверка аргументов функции
+function_parameter_count:
+  warning: 5 # Предупреждение, если функция имеет более 5 аргументов
+  error: 8 # Ошибка, если функция имеет более 8 аргументов
+
+# Настройки табуляции и отступов
+indentation:
+  spaces: 4 # Используйте отступ в 4 пробела
+  indent_case: true # Отступы внутри case блоков
+
+# Пробелы вокруг операторов
+operator_usage_whitespace:
+  severity: warning # Предупреждение, если пробелы вокруг операторов отсутствуют
+
+# Пробелы в пустых коллекциях
+empty_collection_literal_whitespace:
+  severity: warning # Предупреждение для лишних пробелов в пустых коллекциях (e.g., [])
+
+# Названия переменных
+identifier_name:
+  min_length:
+    warning: 3 # Минимальная длина имени переменной (предупреждение)
+    error: 2 # Минимальная длина имени переменной (ошибка)
+  max_length:
+    warning: 30 # Максимальная длина имени переменной (предупреждение)
+    error: 50 # Максимальная длина имени переменной (ошибка)
+  excluded: # Исключения (например, `i`, `id`, `x`)
+    - i
+    - id
+    - x
+
+# Организация импортов
+sorted_imports:
+  severity: warning # Импорты должны быть отсортированы по алфавиту
+
+# Правило для отсутствующих `self`
+explicit_self:
+  severity: warning # Требует явного использования self, где это необходимо
+
+# Пробелы вокруг скобок
+control_statement:
+  severity: warning # Требует пробелов вокруг скобок в конструкциях управления
+  allowed_no_space_operators:
+    - "!"
+
+# Прочие правила
+trailing_whitespace:
+  severity: warning # Предупреждение для пробелов в конце строки
+
+type_body_length:
+  warning: 200 # Предупреждение, если тело класса/структуры превышает 200 строк
+  error: 300 # Ошибка, если тело класса/структуры превышает 300 строк
+
+# Добавить другие настройки, если это необходимо.
