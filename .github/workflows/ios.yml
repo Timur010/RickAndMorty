@@ -10,29 +10,47 @@ jobs:
   build:
     name: Build iOS App
     runs-on: macos-13
+    strategy:
+      matrix:
+        ios-version: ['16.0', '16.2', '17.0']
 
     steps:
-      # Шаг 1: Клонирование репозитория
+      # Step 1: Checkout repository
       - name: Checkout
         uses: actions/checkout@v3
 
-      # Шаг 2: Установка Xcode
+      # Step 2: Setup Xcode version
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '15.0.1'
 
-      # Шаг 3: Очистка DerivedData
+      # Step 3: Install SwiftLint
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      # Step 4: Run SwiftLint
+      - name: Run SwiftLint
+        run: swiftlint lint
+
+      # Step 5: Clean DerivedData
       - name: Clean Derived Data
         run: rm -rf ~/Library/Developer/Xcode/DerivedData
 
-      # Шаг 4: Сборка проекта
+      # Step 6: Build project for different iOS versions
       - name: Build Project
         run: |
           xcodebuild -scheme "RickAndMorty" \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 14,OS=16.0' \
+            -destination 'platform=iOS Simulator,name=iPhone 14,OS=${{ matrix.ios-version }}' \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
             clean build \
             | xcpretty
+
+      # Step 7: Save build artifacts
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts-ios-${{ matrix.ios-version }}
+          path: ~/Library/Developer/Xcode/DerivedData
