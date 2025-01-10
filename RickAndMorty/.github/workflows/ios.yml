@@ -1,0 +1,42 @@
+#
+//  ios.yml
+//  RickAndMorty
+//
+//  Created by Timur Kadiev on 10.01.2025.
+//
+
+
+# Create .github/workflows directory in project root
+# Then create ios.yml inside it
+
+name: iOS CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build and Test default scheme using iPhone simulator
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 'latest-stable'
+
+      - name: Install Dependencies
+        run: |
+          cd RickAndMorty
+          pod install
+
+      - name: Build
+        run: |
+          cd RickAndMorty
+          xcodebuild build -workspace RickAndMorty.xcworkspace -scheme RickAndMorty -destination 'platform=iOS Simulator,name=iPhone 14'
