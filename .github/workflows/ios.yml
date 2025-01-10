@@ -28,16 +28,16 @@ jobs:
       - name: Run SwiftLint
         run: swiftlint
 
-     - name: Run SwiftFormat
-       run: |
-        brew install swiftformat
-        swiftformat .
+      - name: Run SwiftFormat
+        run: |
+          brew install swiftformat
+          swiftformat .
 
       - name: SonarQube Scan
-        run:|
+        run: |
           sonar-scanner \
             -Dsonar.projectKey=RickAndMorty \
             -Dsonar.sources=. \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=myorganization \
-            -Dsonar.login=$SONAR_TOKEN
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
