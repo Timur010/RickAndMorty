@@ -33,6 +33,10 @@ jobs:
           brew install swiftformat
           swiftformat .
 
+      - name: Install Sonar Scanner
+        run: |
+          brew install sonar-scanner
+
       - name: SonarQube Scan
         run: |
           sonar-scanner \
