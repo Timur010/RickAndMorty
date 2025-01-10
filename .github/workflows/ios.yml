@@ -20,6 +20,10 @@ jobs:
         with:
           xcode-version: 'latest-stable'
 
+      # List available simulators
+      - name: List Simulators
+        run: xcrun simctl list devices
+
       # Add SPM cache
       - name: Cache SPM packages
         uses: actions/cache@v3
@@ -33,4 +37,8 @@ jobs:
 
       - name: Build
         run: |
-          xcodebuild clean build -project RickAndMorty.xcodeproj -scheme RickAndMorty -destination 'platform=iOS Simulator,name=iPhone 14' | xcpretty && exit ${PIPESTATUS[0]}
+          xcodebuild clean build \
+            -project RickAndMorty.xcodeproj \
+            -scheme RickAndMorty \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 14 Pro' \
+            | xcpretty && exit ${PIPESTATUS[0]}
