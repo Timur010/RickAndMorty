@@ -32,16 +32,3 @@ jobs:
         run: |
           brew install swiftformat
           swiftformat .
-
-      - name: Install Sonar Scanner
-        run: |
-          brew install sonar-scanner
-
-      - name: SonarQube Scan
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=RickAndMorty \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.organization=myorganization \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
