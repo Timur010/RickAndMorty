@@ -20,8 +20,9 @@ jobs:
         with:
           xcode-version: '15.0.1'
 
-      - name: Show Xcode version
-        run: xcodebuild -version
-
-      - name: List Xcode schemes
-        run: xcodebuild -list -json
+      - name: Build Project
+        run: |
+          xcodebuild -scheme "RickAndMorty" \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
