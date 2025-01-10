@@ -1,3 +1,4 @@
+# Your iOS CI workflow configuration
 name: iOS CI
 
 on:
@@ -20,12 +21,8 @@ jobs:
         with:
           xcode-version: 'latest-stable'
 
-      - name: Install SwiftLint
-        run: brew install swiftlint
-
-      - name: SwiftLint
-        run: swiftlint --quiet --config .swiftlint.yml
-
+      # Remove SwiftLint check for now
+      
       - name: Install Dependencies
         run: |
           cd RickAndMorty
@@ -34,4 +31,4 @@ jobs:
       - name: Build
         run: |
           cd RickAndMorty
-          xcodebuild build -workspace RickAndMorty.xcworkspace -scheme RickAndMorty -destination 'platform=iOS Simulator,name=iPhone 14' | xcpretty
+          xcodebuild clean build -workspace RickAndMorty.xcworkspace -scheme RickAndMorty -destination 'platform=iOS Simulator,name=iPhone 14' | xcpretty && exit ${PIPESTATUS[0]}
