@@ -1,4 +1,3 @@
-# Your iOS CI workflow configuration
 name: iOS CI
 
 on:
@@ -21,14 +20,17 @@ jobs:
         with:
           xcode-version: 'latest-stable'
 
-      # Remove SwiftLint check for now
-      
-      - name: Install Dependencies
-        run: |
-          cd RickAndMorty
-          pod install
+      # Add SPM cache
+      - name: Cache SPM packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            .build
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
 
       - name: Build
         run: |
-          cd RickAndMorty
-          xcodebuild clean build -workspace RickAndMorty.xcworkspace -scheme RickAndMorty -destination 'platform=iOS Simulator,name=iPhone 14' | xcpretty && exit ${PIPESTATUS[0]}
+          xcodebuild clean build -project RickAndMorty.xcodeproj -scheme RickAndMorty -destination 'platform=iOS Simulator,name=iPhone 14' | xcpretty && exit ${PIPESTATUS[0]}
