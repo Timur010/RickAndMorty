@@ -1,0 +1,13 @@
+# файл конфигурации SwiftFormat
+
+--swiftversion 5.9
+--indent 4
+--trimwhitespace always
+--ifdef no-indent
+--stripunusedargs closure-only
+--wrapcollections before-first
+--wraparguments before-first
+--maxwidth 120
+--header strip
+--organizetypes class,struct,enum,extension
+--extensionacl on-declarations
