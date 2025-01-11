@@ -9,17 +9,14 @@ import SwiftUI
 struct CharacterCellView: View {
     let character: Character
 
+    private var characterStatus: CharacterStatus {
+            CharacterStatus(rawValue: character.status) ?? .unknown
+        }
+    
     var body: some View {
         HStack {
-            AsyncImage(url: URL(string: character.image)) { image in
-                image.resizable()
-
-            } placeholder: {
-                ProgressView()
-            }
-            .saturation(1) 
-            .frame(width: 120, height: 120)
-            .cornerRadius(40)
+            RemoteImageView(imageURL: character.image, saturation: characterStatus.imageSaturation)
+                .frame(width: UIScreen.main.bounds.width * 0.28)
 
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
@@ -28,13 +25,7 @@ struct CharacterCellView: View {
                     
                     Spacer()
 
-                    Text(character.status.uppercased())
-                        .regularTextStyle(color: .ramGreen)
-                        .padding(5)
-                        .background(
-                            Capsule()
-                                .fill(Color.lightGreen)
-                        )
+                    StatusBadgeView(status: characterStatus)
                 }
                
                 Text("\(character.species), \(character.gender)")
