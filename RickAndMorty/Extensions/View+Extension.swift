@@ -1,5 +1,5 @@
 //
-//  UIView+Extension.swift
+//  View+Extension.swift
 //  RickAndMorty
 //
 //  Created by Timur Kadiev on 11.01.2025.

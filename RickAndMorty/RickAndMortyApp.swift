@@ -21,8 +21,11 @@ struct RickAndMortyApp: App {
     
     var body: some Scene {
         WindowGroup {
-            CharacterListView()
-                .environmentObject(viewModel)
+            NavigationView {
+                CharacterListView()
+                    .environmentObject(viewModel)
+                    .navigationTitle("Characters")
+            }
         }
     }
 }

@@ -11,8 +11,8 @@ struct CharacterListView: View {
     @EnvironmentObject var viewModel: CharactersViewModel
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 16) {
+        ScrollView() {
+            LazyVStack(spacing: 32) {
                 ForEach(viewModel.characters, id: \.id) { character in
                     CharacterCellView(character: character)
                         .onAppear {
@@ -32,7 +32,7 @@ struct CharacterListView: View {
                         .foregroundColor(.red)
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 24)
         }
     }
 }
