@@ -12,21 +12,49 @@ struct RemoteImageView: View {
     var saturation: Double = 1.0
     var cornerRadius: CGFloat = 40
     
+    @State private var image: UIImage?
+    
     var body: some View {
         GeometryReader { geometry in
-            AsyncImage(url: URL(string: imageURL)) { image in
-                image
+            if let image = image {
+                Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-            } placeholder: {
+                    .saturation(saturation)
+                    .frame(width: geometry.size.width, height: geometry.size.width)
+                    .cornerRadius(cornerRadius)
+                    .clipped()
+            } else {
                 ProgressView()
+                    .frame(width: geometry.size.width, height: geometry.size.width)
+                    .onAppear {
+                        loadImage()
+                    }
             }
-            .saturation(saturation) 
-            .frame(width: geometry.size.width, height: geometry.size.width)
-            .cornerRadius(cornerRadius)
-            .clipped()
         }
         .aspectRatio(1, contentMode: .fit)
     }
+    
+    private func loadImage() {
+        ImageCache.shared.getImage(for: imageURL) { cachedImage in
+            if let image = cachedImage {
+                self.image = image
+            } else {
+                downloadImage()
+            }
+        }
+    }
+    
+    private func downloadImage() {
+        guard let url = URL(string: imageURL) else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            if let data = data, let downloadedImage = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    ImageCache.shared.cacheImage(downloadedImage, for: imageURL)
+                    self.image = downloadedImage
+                }
+            }
+        }.resume()
+    }
 }
-

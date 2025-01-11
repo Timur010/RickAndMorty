@@ -12,11 +12,27 @@ struct CharacterListView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack {
-                ForEach(viewModel.characters, id: \.name) { character in
+            LazyVStack(spacing: 16) {
+                ForEach(viewModel.characters, id: \.id) { character in
                     CharacterCellView(character: character)
+                        .onAppear {
+                            if character.id == viewModel.characters.last?.id && viewModel.canLoadMorePages {
+                                viewModel.loadCharacters()
+                            }
+                        }
+                }
+                
+                if viewModel.isLoading {
+                    ProgressView()
+                        .frame(height: 50)
+                }
+                
+                if viewModel.errorMessage != nil {
+                    Text(viewModel.errorMessage ?? "")
+                        .foregroundColor(.red)
                 }
             }
+            .padding(.horizontal)
         }
     }
 }

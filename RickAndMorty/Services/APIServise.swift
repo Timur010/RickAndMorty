@@ -9,17 +9,16 @@ import Foundation
 import Alamofire
 
 protocol APIServiceProtocol {
-    func fetchCharacters(page: Int, completion: @escaping (Result<CharacterResponse, Error>) -> Void)
+    func fetchCharacters(urlString: String?, completion: @escaping (Result<CharacterResponse, Error>) -> Void)
 }
 
 class APIService: APIServiceProtocol {
+    private let baseURL = "https://rickandmortyapi.com/api/character"
     
-    init() {}
-
-    func fetchCharacters(page: Int = 1, completion: @escaping (Result<CharacterResponse, Error>) -> Void) {
-        let url = "https://rickandmortyapi.com/api/character?page=\(page)"
+    func fetchCharacters(urlString: String? = nil, completion: @escaping (Result<CharacterResponse, Error>) -> Void) {
+        let urlToUse = urlString ?? baseURL
         
-        AF.request(url, method: .get)
+        AF.request(urlToUse)
             .validate()
             .responseDecodable(of: CharacterResponse.self) { response in
                 switch response.result {
@@ -31,3 +30,8 @@ class APIService: APIServiceProtocol {
             }
     }
 }
+
+//enum NetworkError: Error {
+//    case invalidURL
+//    case noData
+//}
