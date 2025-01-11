@@ -24,14 +24,12 @@ struct CharacterCellView: View {
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
                     Text(character.name)
-                        .font(.headline)
+                        .titleStyle()
                     
                     Spacer()
 
                     Text(character.status.uppercased())
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color.ramGreen)
+                        .regularTextStyle(color: .ramGreen)
                         .padding(5)
                         .background(
                             Capsule()
@@ -40,8 +38,7 @@ struct CharacterCellView: View {
                 }
                
                 Text("\(character.species), \(character.gender)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .regularTextStyle(color: .ramBlack)
                 
                 Button(action: {
                     
@@ -50,7 +47,7 @@ struct CharacterCellView: View {
                         Image(systemName: "play.fill")
                             .scaleEffect(0.7)
                         Text("Watch episodes")
-                            .font(.system(size: 14))
+                            .regularTextStyle(color: .ramOrange)
                     }
                 }
                 .buttonStyle(CustomButtonStyle(backgroundColor: .ramOrange.opacity(0.1), foregroundColor: .ramOrange))
@@ -60,8 +57,7 @@ struct CharacterCellView: View {
                     Image(systemName: "location")
                         .foregroundColor(.gray)
                     Text(character.origin.name)
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                        .regularTextStyle(color: .ramGrey)
                 }
             }
         }

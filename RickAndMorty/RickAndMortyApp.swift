@@ -9,8 +9,16 @@ import SwiftUI
 
 @main
 struct RickAndMortyApp: App {
-    @StateObject private var viewModel = CharactersViewModel()
+    
+    private let apiService: APIServiceProtocol = APIService()
+    
+    @StateObject private var viewModel: CharactersViewModel
 
+    init() {
+        let vm = CharactersViewModel(apiService: apiService)
+        _viewModel = StateObject(wrappedValue: vm)
+    }
+    
     var body: some Scene {
         WindowGroup {
             CharacterListView()

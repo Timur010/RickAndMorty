@@ -15,15 +15,19 @@ class CharactersViewModel: ObservableObject {
 
     private var currentPage = 1
     
-    init() {
-        loadCharacters()
+    private let apiService: APIServiceProtocol
+    
+    init(apiService: APIServiceProtocol = APIService()) {
+            self.apiService = apiService
+            loadCharacters()
     }
+
 
     func loadCharacters() {
         isLoading = true
         errorMessage = nil
 
-        APIService.shared.fetchCharacters(page: currentPage) { [weak self] result in
+        apiService.fetchCharacters(page: currentPage) { [weak self] result in
             DispatchQueue.main.async {
                 self?.isLoading = false
                 switch result {

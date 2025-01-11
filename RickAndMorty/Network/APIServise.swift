@@ -8,10 +8,13 @@
 import Foundation
 import Alamofire
 
-class APIService {
-    static let shared = APIService()
+protocol APIServiceProtocol {
+    func fetchCharacters(page: Int, completion: @escaping (Result<CharacterResponse, Error>) -> Void)
+}
 
-    private init() {}
+class APIService: APIServiceProtocol {
+    
+    init() {}
 
     func fetchCharacters(page: Int = 1, completion: @escaping (Result<CharacterResponse, Error>) -> Void) {
         let url = "https://rickandmortyapi.com/api/character?page=\(page)"
