@@ -47,7 +47,7 @@
 			sourceTree = "<group>";
 		};
 		392DAB242D303E6900AD8481 /* RickAndMorty */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
+			isa = PBXGroup;
 			path = RickAndMorty;
 			sourceTree = "<group>";
 		};
