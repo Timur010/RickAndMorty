@@ -12,8 +12,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		391B9E262D330DBB002B0D9A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
+		391B9E232D330DBB002B0D9A /* RickAndMortyTests */ = {
+            isa = PBXGroup;
 			containerPortal = 392DAB1A2D303E6900AD8481 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 392DAB212D303E6900AD8481;
