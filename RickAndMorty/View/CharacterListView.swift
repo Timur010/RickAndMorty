@@ -1,8 +1,7 @@
+// CharacterListView.swift
+// RickAndMorty
 //
-//  CharacterListView.swift
-//  RickAndMorty
-//
-//  Created by Timur Kadiev on 09.01.2025.
+// Created by Timur Kadiev on 09.01.2025.
 //
 
 import SwiftUI
@@ -11,28 +10,56 @@ struct CharacterListView: View {
     @EnvironmentObject var viewModel: CharactersViewModel
 
     var body: some View {
-        ScrollView() {
-            LazyVStack(spacing: 32) {
-                ForEach(viewModel.characters, id: \.id) { character in
+            List {
+                ForEach(viewModel.characters) { character in
                     CharacterCellView(character: character)
                         .onAppear {
                             if character.id == viewModel.characters.last?.id && viewModel.canLoadMorePages {
-                                viewModel.loadCharacters()
+                                Task {
+                                    await viewModel.loadCharacters()
+                                }
                             }
                         }
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 32, trailing: 24)) // Убрать стандартные отступы
                 }
-                
+
                 if viewModel.isLoading {
-                    ProgressView()
-                        .frame(height: 50)
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
                 }
-                
-                if viewModel.errorMessage != nil {
-                    Text(viewModel.errorMessage ?? "")
-                        .foregroundColor(.red)
+
+                if let errorMessage = viewModel.errorMessage {
+                    HStack {
+                        Spacer()
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                        Spacer()
+                    }
+                    .padding()
+                    .listRowSeparator(.hidden)
                 }
             }
-            .padding(.horizontal, 24)
+            .listStyle(PlainListStyle())
+            .alert(isPresented: Binding<Bool>(
+                get: { viewModel.errorMessage != nil },
+                set: { _ in viewModel.errorMessage = nil }
+            )) {
+                Alert(
+                    title: Text("Error"),
+                    message: Text(viewModel.errorMessage ?? "Unknown error"),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
+            .refreshable {
+                await viewModel.clearCacheAsync()
+            }
         }
     }
-}
+

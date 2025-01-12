@@ -1,78 +1,86 @@
-//
-//  CharactersViewModel.swift
-//  RickAndMorty
-//
-//  Created by Timur Kadiev on 09.01.2025.
+
 import Foundation
 
+@MainActor
 class CharactersViewModel: ObservableObject {
     @Published var characters: [Character] = []
-    @Published var isLoading = false
+    @Published var isLoading: Bool = false
     @Published var errorMessage: String?
-    
-    private var nextPageURL: String?
+
+    var nextPageURL: String?
     private let apiService: APIServiceProtocol
+    private let dataCache: DataCacheProtocol  // Использование протокола
     private let cacheKey = "characters_cache"
-    private var isFetching = false
-    
-    init(apiService: APIServiceProtocol = APIService()) {
+    private var isFetching: Bool = false
+
+    init(apiService: APIServiceProtocol = APIService(), dataCache: DataCacheProtocol = DataCache.shared) {
         self.apiService = apiService
+        self.dataCache = dataCache
+        Task {
+            await loadCachedData()
+        }
+    }
         
-        DataCache.shared.getData(for: cacheKey) { [weak self] (cachedData: CachedCharacters?) in
-            DispatchQueue.main.async {
-                if let cachedData = cachedData {
-                    self?.characters = cachedData.characters
-                    self?.nextPageURL = cachedData.nextPageURL
-                } else {
-                    self?.loadCharacters()
-                }
+    func loadMoreCharactersIfNeeded(currentCharacter: Character) {
+        guard let lastCharacter = characters.last else { return }
+        if currentCharacter.id == lastCharacter.id && canLoadMorePages {
+            Task {
+                await loadCharacters()
             }
         }
     }
     
-    func loadCharacters() {
+    func loadCachedData() async {
+        if let cachedData: CachedCharacters = await dataCache.getDataAsync(for: cacheKey) {
+            self.characters = cachedData.characters
+            self.nextPageURL = cachedData.nextPageURL
+        } else {
+            await loadCharacters()
+        }
+    }
+
+    func loadCharacters() async {
         guard !isLoading, !isFetching else { return }
         isFetching = true
         isLoading = true
         errorMessage = nil
 
-        apiService.fetchCharacters(endpoint: nextPageURL) { [weak self] result in
-            DispatchQueue.main.async {
-                self?.isFetching = false
-                self?.isLoading = false
-                switch result {
-                case .success(let response):
-                    let newCharacters = response.results.filter { newCharacter in
-                        !(self?.characters.contains(where: { $0.id == newCharacter.id }) ?? false)
-                    }
-                    self?.characters.append(contentsOf: newCharacters)
-                    self?.nextPageURL = response.info.next
-
-                    if let characters = self?.characters {
-                        let cachedData = CachedCharacters(characters: characters, nextPageURL: self?.nextPageURL)
-                        DataCache.shared.cacheData(cachedData, for: self?.cacheKey ?? "")
-                    }
-                case .failure(let error):
-                    self?.errorMessage = error.localizedDescription
-                }
+        do {
+            let response = try await apiService.fetchCharacters(nextURL: nextPageURL)
+            let newCharacters = response.results.filter { newCharacter in
+                !self.characters.contains(where: { $0.id == newCharacter.id })
             }
+            characters.append(contentsOf: newCharacters)
+            nextPageURL = response.info.next
+
+            let cachedData = CachedCharacters(characters: characters, nextPageURL: nextPageURL)
+            await dataCache.cacheDataAsync(cachedData, for: cacheKey)
+        } catch let error as APIError {
+            errorMessage = error.localizedDescription
+        } catch {
+            errorMessage = APIError.unknownError.localizedDescription
         }
+        
+        isFetching = false
+        isLoading = false
     }
 
-    
+    func clearCacheAsync() async {
+        guard !isLoading else { return }
+        await dataCache.clearCacheAsync(for: cacheKey)
+        characters = []
+        nextPageURL = nil
+        await loadCharacters()
+    }
+
+    private func getCachedData<T: Codable>(for key: String) async -> T? {
+        return await dataCache.getDataAsync(for: key)
+    }
+
     var canLoadMorePages: Bool {
         return nextPageURL != nil
     }
-    
-    func clearCache() {
-        guard !isLoading else { return }
-        DataCache.shared.clearCache()
-        characters = []
-        nextPageURL = nil
-        loadCharacters()
-    }
 }
-
 
 struct CachedCharacters: Codable {
     let characters: [Character]

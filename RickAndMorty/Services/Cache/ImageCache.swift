@@ -1,75 +1,102 @@
-//
-//  ImageCache.swift
-//  RickAndMorty
-//
-//  Created by Timur Kadiev on 11.01.2025.
-//
+// ImageCache.swift
+// RickAndMorty
 
 import UIKit
 
-final class ImageCache: CacheManager<UIImage> {
+final class ImageCache {
+
     static let shared = ImageCache()
-    
+
+    private let cacheManager: CacheManager
+
     private init() {
-        super.init(
-            folderName: "ImageCache",
-            maxItems: 100,
-            maxSize: 50 * 1024 * 1024,
-            timeToLive: 24 * 60 * 60
-        )
-        
-        setupNotifications()
+        self.cacheManager = CacheManager(folderName: "ImageCache")
     }
-    
-    private func setupNotifications() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(clearMemoryCache),
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil
-        )
+
+    /// Асинхронно получает изображение из кеша.
+    /// - Parameter url: URL изображения.
+    /// - Returns: Изображение, если оно существует в кеше.
+    func getImageAsync(for url: String) async -> UIImage? {
+        await withCheckedContinuation { continuation in
+            getImage(for: url) { image in
+                continuation.resume(returning: image)
+            }
+        }
     }
-    
-    @objc private func clearMemoryCache() {
-        memoryCache.removeAllObjects()
-    }
-    
+
+    /// Получает изображение из кеша с использованием замыкания.
+    /// - Parameters:
+    ///   - url: URL изображения.
+    ///   - completion: Замыкание, вызываемое с результатом поиска.
     func getImage(for url: String, completion: @escaping (UIImage?) -> Void) {
-        if let cachedImage = getFromMemoryCache(for: url) {
-            completion(cachedImage)
+        if let cachedImage = cacheManager.getFromMemoryCache(for: url),
+           let image = UIImage(data: cachedImage) {
+            completion(image)
             return
         }
-        
-        let imagePath = diskCachePath + "/" + url.hash.description
-        diskCacheQueue.async { [weak self] in
-            guard let self = self else { return }
-            
-            if let data = try? Data(contentsOf: URL(fileURLWithPath: imagePath)),
+        DispatchQueue.global(qos: .background).async {
+            if let data = self.cacheManager.getFromDiskCache(for: url),
                let image = UIImage(data: data) {
-                self.saveToMemoryCache(image, for: url)
+                self.cacheManager.saveToMemoryCache(data, for: url)
                 DispatchQueue.main.async {
                     completion(image)
                 }
                 return
             }
-            
+
             DispatchQueue.main.async {
                 completion(nil)
             }
         }
     }
-    
-    func cacheImage(_ image: UIImage, for url: String) {
-        saveToMemoryCache(image, for: url)
-        
-        diskCacheQueue.async { [weak self] in
-            guard let self = self else { return }
-            
-            let imagePath = self.diskCachePath + "/" + url.hash.description
-            if let data = image.jpegData(compressionQuality: 0.8) {
-                try? data.write(to: URL(fileURLWithPath: imagePath))
-                self.cleanupDiskCacheIfNeeded()
-            }
+
+    /// Асинхронно кеширует изображение.
+    /// - Parameters:
+    ///   - image: Изображение для кеширования.
+    ///   - url: URL изображения.
+    func cacheImageAsync(_ image: UIImage, for url: String) async {
+        await withCheckedContinuation { continuation in
+            cacheImage(image, for: url)
+            continuation.resume()
         }
+    }
+
+    /// Кеширует изображение с использованием замыкания.
+    /// - Parameters:
+    ///   - image: Изображение для кеширования.
+    ///   - url: URL изображения.
+    func cacheImage(_ image: UIImage, for url: String) {
+        // Конвертация UIImage в Data (JPEG с качеством 0.8)
+        guard let data = image.jpegData(compressionQuality: 0.8) else { return }
+        cacheManager.saveToMemoryCache(data, for: url)
+        cacheManager.saveToDiskCache(data, for: url)
+    }
+
+    /// Асинхронно очищает кеш для конкретного изображения.
+    /// - Parameter url: URL изображения.
+    func clearCacheAsync(for url: String) async {
+        await withCheckedContinuation { continuation in
+            clearCache(for: url)
+            continuation.resume()
+        }
+    }
+
+    /// Очищает кеш для конкретного изображения.
+    /// - Parameter url: URL изображения.
+    func clearCache(for url: String) {
+        cacheManager.clearCache(for: url)
+    }
+
+    /// Асинхронно очищает весь кеш изображений.
+    func clearAllCacheAsync() async {
+        await withCheckedContinuation { continuation in
+            clearAllCache()
+            continuation.resume()
+        }
+    }
+
+    /// Очищает весь кеш изображений.
+    func clearAllCache() {
+        cacheManager.clearAllCache()
     }
 }

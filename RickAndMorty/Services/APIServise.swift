@@ -1,66 +1,92 @@
+// APIService.swift
+// RickAndMorty
 //
-//  APIServise.swift
-//  RickAndMorty
-//
-//  Created by Timur Kadiev on 09.01.2025.
+// Created by Timur Kadiev on 09.01.2025.
 //
 
-import Foundation
 import Alamofire
 import Foundation
-import Alamofire
 
 protocol APIServiceProtocol {
-    func fetchCharacters(endpoint: String?, completion: @escaping (Result<CharacterResponse, Error>) -> Void)
+    func fetchCharacters(nextURL: String?) async throws -> CharacterResponse
 }
 
-enum APIError: Error {
+protocol ReachabilityProtocol {
+    var isReachable: Bool { get }
+}
+
+extension NetworkReachabilityManager: ReachabilityProtocol {}
+
+enum APIError: Error, Equatable {
     case decodingError
     case requestFailed(AFError)
+    case noInternetConnection
     case unknownError
     
     var localizedDescription: String {
         switch self {
         case .decodingError:
-            return "Failed to decode the response."
+            return "Не удалось декодировать ответ."
         case .requestFailed(let afError):
-            return "Request failed: \(afError.localizedDescription)"
+            return "Запрос не удался: \(afError.localizedDescription)"
+        case .noInternetConnection:
+            return "Отсутствует интернет-соединение."
         case .unknownError:
-            return "An unknown error occurred."
+            return "Произошла неизвестная ошибка."
+        }
+    }
+    
+    static func == (lhs: APIError, rhs: APIError) -> Bool {
+        switch (lhs, rhs) {
+        case (.decodingError, .decodingError),
+             (.noInternetConnection, .noInternetConnection),
+             (.unknownError, .unknownError):
+            return true
+        case (.requestFailed(let lhsError), .requestFailed(let rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
+        default:
+            return false
         }
     }
 }
 
+
 class APIService: APIServiceProtocol {
     private let session: Session
     private let baseURL: String
+    private let reachabilityManager: ReachabilityProtocol?
     
-    init(baseURL: String = "https://rickandmortyapi.com/api/character", session: Session = .default) {
+    init(baseURL: String = "https://rickandmortyapi.com/api/character",
+         session: Session = .default,
+         reachabilityManager: ReachabilityProtocol? = NetworkReachabilityManager()) {
         self.baseURL = baseURL
         self.session = session
+        self.reachabilityManager = reachabilityManager
     }
     
-    func fetchCharacters(endpoint: String? = nil, completion: @escaping (Result<CharacterResponse, Error>) -> Void) {
-        guard NetworkReachabilityManager()?.isReachable == true else {
-            completion(.failure(APIError.requestFailed(AFError.explicitlyCancelled)))
-            return
+    func fetchCharacters(nextURL: String? = nil) async throws -> CharacterResponse {
+        guard reachabilityManager?.isReachable == true else {
+            throw APIError.noInternetConnection
         }
         
-        let urlToUse = endpoint.map { "\($0)" } ?? baseURL
+        let urlToUse = nextURL ?? baseURL
         
-        session.request(urlToUse)
-            .validate()
-            .responseDecodable(of: CharacterResponse.self) { response in
-                switch response.result {
-                case .success(let characterResponse):
-                    completion(.success(characterResponse))
-                case .failure(let error):
-                    if let afError = error.asAFError, afError.isResponseSerializationError {
-                        completion(.failure(APIError.decodingError))
-                    } else {
-                        completion(.failure(APIError.requestFailed(error)))
-                    }
-                }
+        do {
+            let response = try await session.request(urlToUse)
+                .validate()
+                .serializingDecodable(CharacterResponse.self)
+                .value
+            return response
+        } catch let error as AFError {
+            if error.isResponseSerializationError {
+                throw APIError.decodingError
+            } else if let underlyingError = error.underlyingError, !(underlyingError is AFError) {
+                throw APIError.unknownError
+            } else {
+                throw APIError.requestFailed(error)
             }
+        } catch {
+            throw APIError.unknownError
+        }
     }
 }

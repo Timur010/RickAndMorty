@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Alamofire
 
 @main
 struct RickAndMortyApp: App {

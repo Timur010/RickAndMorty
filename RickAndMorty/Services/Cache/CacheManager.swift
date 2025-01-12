@@ -3,163 +3,99 @@
 //  RickAndMorty
 //
 //  Created by Timur Kadiev on 11.01.2025.
-//
 
 import Foundation
-import UIKit
 
-class CacheManager<T> {
-    let memoryCache = NSCache<NSString, AnyObject>()
-    let fileManager = FileManager.default
-    let diskCacheQueue: DispatchQueue
+final class CacheManager {
     
-    let maxMemoryCacheCount: Int
-    let maxDiskCacheSize: UInt64
-    let cacheTimeToLive: TimeInterval
-    let cacheFolderName: String
+    private let memoryCache = NSCache<NSString, NSData>()
+    private let fileManager = FileManager.default
+    private let diskCacheQueue: DispatchQueue
+    private let cacheFolderName: String
+    private let diskCachePath: String
     
-    private let memoryWarningThreshold: Double = 0.7
-    private var cacheHits: Int = 0
-    private let cleanupThreshold: Int = 50
-    private var currentItemCount: Int = 0
-    
-    private var cacheKeys: [String] = []
-    
-    var diskCachePath: String {
-        let paths = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)
-        return paths[0].appendingPathComponent(cacheFolderName).path
-    }
-        
-    init(folderName: String,
-         maxItems: Int,
-         maxSize: UInt64,
-         timeToLive: TimeInterval) {
+    init(folderName: String) {
         self.cacheFolderName = folderName
-        self.maxMemoryCacheCount = min(maxItems, 50)
-        self.maxDiskCacheSize = maxSize
-        self.cacheTimeToLive = timeToLive
-        self.diskCacheQueue = DispatchQueue(label: "com.rickandmorty.\(folderName)")
-        
-        setupCache()
-        setupMemoryWarningNotification()
+        self.diskCacheQueue = DispatchQueue(label: "com.rickandmorty.\(folderName)", qos: .background)
+        self.diskCachePath = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)
+            .first!
+            .appendingPathComponent(folderName)
+            .path
+
+        setupDiskCache()
     }
-        
-    private func setupCache() {
-        memoryCache.countLimit = maxMemoryCacheCount
-        
+
+    /// Создаёт папку для дискового кеша, если она не существует.
+    private func setupDiskCache() {
         if !fileManager.fileExists(atPath: diskCachePath) {
-            try? fileManager.createDirectory(atPath: diskCachePath,
-                                           withIntermediateDirectories: true)
+            try? fileManager.createDirectory(atPath: diskCachePath, withIntermediateDirectories: true)
         }
     }
-    
-    private func setupMemoryWarningNotification() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleMemoryWarning),
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil
-        )
+
+    /// Получает данные из кеша памяти.
+    /// - Parameter key: Ключ для поиска данных.
+    /// - Returns: Данные, если они существуют в кеше памяти.
+    func getFromMemoryCache(for key: String) -> Data? {
+        return memoryCache.object(forKey: key as NSString) as Data?
     }
-    
-    @objc private func handleMemoryWarning() {
-        clearMemoryCache()
+
+    /// Сохраняет данные в кеш памяти.
+    /// - Parameters:
+    ///   - data: Данные для сохранения.
+    ///   - key: Ключ для сохранения данных.
+    func saveToMemoryCache(_ data: Data, for key: String) {
+        memoryCache.setObject(data as NSData, forKey: key as NSString)
     }
-        
-    func getFromMemoryCache(for key: String) -> T? {
-        cacheHits += 1
-        checkMemoryUsage()
-        return memoryCache.object(forKey: key as NSString) as? T
+
+    /// Удаляет данные из кеша памяти.
+    /// - Parameter key: Ключ для удаления данных.
+    func removeFromMemoryCache(for key: String) {
+        memoryCache.removeObject(forKey: key as NSString)
     }
-    
-    func saveToMemoryCache(_ item: T, for key: String) {
-        memoryCache.setObject(item as AnyObject, forKey: key as NSString)
-        if !cacheKeys.contains(key) {
-            cacheKeys.append(key)
-            currentItemCount += 1
+
+    /// Получает данные из дискового кеша.
+    /// - Parameter key: Ключ для поиска данных.
+    /// - Returns: Данные, если они существуют в дисковом кеше.
+    func getFromDiskCache(for key: String) -> Data? {
+        let filePath = diskCachePath + "/" + key.hash.description
+        return try? Data(contentsOf: URL(fileURLWithPath: filePath))
+    }
+
+    /// Сохраняет данные в дисковый кеш.
+    /// - Parameters:
+    ///   - data: Данные для сохранения.
+    ///   - key: Ключ для сохранения данных.
+    func saveToDiskCache(_ data: Data, for key: String) {
+        let filePath = diskCachePath + "/" + key.hash.description
+        let url = URL(fileURLWithPath: filePath)
+        diskCacheQueue.async {
+            try? data.write(to: url)
         }
-        checkMemoryUsage()
     }
-    
-    private func checkMemoryUsage() {
-        if cacheHits >= cleanupThreshold {
-            cacheHits = 0
-            clearOldMemoryCache()
-        }
-        
-        let memoryUsed = Double(currentItemCount) / Double(maxMemoryCacheCount)
-        if memoryUsed > memoryWarningThreshold {
-            clearOldMemoryCache()
+
+    /// Удаляет данные из дискового кеша.
+    /// - Parameter key: Ключ для удаления данных.
+    func removeFromDiskCache(for key: String) {
+        let filePath = diskCachePath + "/" + key.hash.description
+        diskCacheQueue.async {
+            try? self.fileManager.removeItem(atPath: filePath)
         }
     }
-    
-    private func clearMemoryCache() {
+
+    /// Очищает кеш для конкретного ключа (из памяти и диска).
+    /// - Parameter key: Ключ для очистки кеша.
+    func clearCache(for key: String) {
+        removeFromMemoryCache(for: key)
+        removeFromDiskCache(for: key)
+    }
+
+    /// Очищает весь кеш (из памяти и диска).
+    func clearAllCache() {
         memoryCache.removeAllObjects()
-        cacheKeys.removeAll()
-        currentItemCount = 0
-        cacheHits = 0
-    }
-    
-    private func clearOldMemoryCache() {
-        let itemsToRemove = currentItemCount / 2
-        let keysToRemove = Array(cacheKeys.prefix(itemsToRemove))
-        
-        for key in keysToRemove {
-            memoryCache.removeObject(forKey: key as NSString)
-            if let index = cacheKeys.firstIndex(of: key) {
-                cacheKeys.remove(at: index)
-            }
-        }
-        
-        currentItemCount = cacheKeys.count
-    }
-    
-    // MARK: - Disk Cache Methods
-    
-    func clearCache() {
-        memoryCache.removeAllObjects()
-        diskCacheQueue.async { [weak self] in
-            guard let self = self else { return }
+        diskCacheQueue.async {
             try? self.fileManager.removeItem(atPath: self.diskCachePath)
-            try? self.fileManager.createDirectory(atPath: self.diskCachePath,
-                                                withIntermediateDirectories: true)
-        }
-    }
-    
-    func cleanupDiskCacheIfNeeded() {
-        diskCacheQueue.async { [weak self] in
-            guard let self = self else { return }
-            
-            let resourceKeys: Set<URLResourceKey> = [.creationDateKey, .totalFileAllocatedSizeKey]
-            let fileEnumerator = self.fileManager.enumerator(
-                at: URL(fileURLWithPath: self.diskCachePath),
-                includingPropertiesForKeys: Array(resourceKeys)
-            )
-            
-            var totalSize: UInt64 = 0
-            var deletingURLs: [URL] = []
-            let expirationDate = Date().addingTimeInterval(-self.cacheTimeToLive)
-            
-            while let fileURL = fileEnumerator?.nextObject() as? URL {
-                guard let resourceValues = try? fileURL.resourceValues(forKeys: resourceKeys),
-                      let creationDate = resourceValues.creationDate,
-                      let fileSize = resourceValues.totalFileAllocatedSize else {
-                    continue
-                }
-                
-                if creationDate < expirationDate {
-                    deletingURLs.append(fileURL)
-                    continue
-                }
-                
-                totalSize += UInt64(fileSize)
-            }
-            
-            if totalSize > self.maxDiskCacheSize {
-                for fileURL in deletingURLs {
-                    try? self.fileManager.removeItem(at: fileURL)
-                }
-            }
+            self.setupDiskCache()
         }
     }
 }
+
