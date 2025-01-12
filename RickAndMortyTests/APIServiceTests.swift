@@ -1,5 +1,5 @@
-import XCTest
 import Alamofire
+import XCTest
 @testable import RickAndMorty
 
 final class APIServiceTests: XCTestCase {
@@ -281,8 +281,6 @@ final class APIServiceTests: XCTestCase {
     }
 }
 
-import Foundation
-
 class MockURLProtocol: URLProtocol {
     static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
     
@@ -312,9 +310,6 @@ class MockURLProtocol: URLProtocol {
     
     override func stopLoading() {}
 }
-
-
-import Alamofire
 
 class MockReachability: ReachabilityProtocol {
     var isReachable: Bool

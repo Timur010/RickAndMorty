@@ -39,8 +39,8 @@ enum APIError: Error, Equatable {
     static func == (lhs: APIError, rhs: APIError) -> Bool {
         switch (lhs, rhs) {
         case (.decodingError, .decodingError),
-             (.noInternetConnection, .noInternetConnection),
-             (.unknownError, .unknownError):
+            (.noInternetConnection, .noInternetConnection),
+            (.unknownError, .unknownError):
             return true
         case (.requestFailed(let lhsError), .requestFailed(let rhsError)):
             return lhsError.localizedDescription == rhsError.localizedDescription
@@ -49,7 +49,6 @@ enum APIError: Error, Equatable {
         }
     }
 }
-
 
 class APIService: APIServiceProtocol {
     private let session: Session

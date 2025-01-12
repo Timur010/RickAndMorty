@@ -10,7 +10,6 @@ protocol DataCacheProtocol {
     func clearAllCacheAsync() async
 }
 
-
 class DataCache: DataCacheProtocol {
     
     static let shared = DataCache()

@@ -1,4 +1,3 @@
-
 import Foundation
 
 @MainActor
@@ -6,13 +5,13 @@ class CharactersViewModel: ObservableObject {
     @Published var characters: [Character] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
-
+    
     var nextPageURL: String?
     private let apiService: APIServiceProtocol
-    private let dataCache: DataCacheProtocol  // Использование протокола
+    private let dataCache: DataCacheProtocol
     private let cacheKey = "characters_cache"
     private var isFetching: Bool = false
-
+    
     init(apiService: APIServiceProtocol = APIService(), dataCache: DataCacheProtocol = DataCache.shared) {
         self.apiService = apiService
         self.dataCache = dataCache
@@ -20,7 +19,7 @@ class CharactersViewModel: ObservableObject {
             await loadCachedData()
         }
     }
-        
+    
     func loadMoreCharactersIfNeeded(currentCharacter: Character) {
         guard let lastCharacter = characters.last else { return }
         if currentCharacter.id == lastCharacter.id && canLoadMorePages {
@@ -38,13 +37,13 @@ class CharactersViewModel: ObservableObject {
             await loadCharacters()
         }
     }
-
+    
     func loadCharacters() async {
         guard !isLoading, !isFetching else { return }
         isFetching = true
         isLoading = true
         errorMessage = nil
-
+        
         do {
             let response = try await apiService.fetchCharacters(nextURL: nextPageURL)
             let newCharacters = response.results.filter { newCharacter in
@@ -52,7 +51,7 @@ class CharactersViewModel: ObservableObject {
             }
             characters.append(contentsOf: newCharacters)
             nextPageURL = response.info.next
-
+            
             let cachedData = CachedCharacters(characters: characters, nextPageURL: nextPageURL)
             await dataCache.cacheDataAsync(cachedData, for: cacheKey)
         } catch let error as APIError {
@@ -64,7 +63,7 @@ class CharactersViewModel: ObservableObject {
         isFetching = false
         isLoading = false
     }
-
+    
     func clearCacheAsync() async {
         guard !isLoading else { return }
         await dataCache.clearCacheAsync(for: cacheKey)
@@ -72,11 +71,11 @@ class CharactersViewModel: ObservableObject {
         nextPageURL = nil
         await loadCharacters()
     }
-
+    
     private func getCachedData<T: Codable>(for key: String) async -> T? {
         return await dataCache.getDataAsync(for: key)
     }
-
+    
     var canLoadMorePages: Bool {
         return nextPageURL != nil
     }

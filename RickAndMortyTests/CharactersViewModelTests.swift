@@ -1,5 +1,3 @@
-// CharactersViewModelTests.swift
-
 import XCTest
 @testable import RickAndMorty
 
@@ -80,38 +78,35 @@ final class CharactersViewModelTests: XCTestCase {
     }
     
     func testLoadMoreCharactersIfNeeded() async {
-            // Подготовка: первая загрузка с одной страницей
-            let firstCharacter = Character(id: 1, name: "Rick Sanchez", status: "Alive", species: "Human", type: "", gender: "Male", origin: LocationInfo(name: "Earth", url: ""), location: LocationInfo(name: "Earth", url: ""), image: "", episode: [], url: "", created: "")
-            let pageInfo1 = PageInfo(count: 2, pages: 2, next: "https://api.example.com/characters?page=2", prev: nil)
-            let response1 = CharacterResponse(info: pageInfo1, results: [firstCharacter])
-            mockAPIService.mockResponse = response1
-            
-            // Загружаем первую страницу
-            await viewModel.loadCharacters()
-            
-            // Проверяем загрузку первой страницы
-            XCTAssertEqual(viewModel.characters.count, 1)
-            XCTAssertEqual(viewModel.characters.first?.name, "Rick Sanchez")
-            XCTAssertEqual(viewModel.nextPageURL, "https://api.example.com/characters?page=2")
-            
-            // Подготовка: вторая страница
-            let secondCharacter = Character(id: 2, name: "Morty Smith", status: "Alive", species: "Human", type: "", gender: "Male", origin: LocationInfo(name: "Earth", url: ""), location: LocationInfo(name: "Earth", url: ""), image: "", episode: [], url: "", created: "")
-            let pageInfo2 = PageInfo(count: 2, pages: 2, next: nil, prev: "https://api.example.com/characters?page=1")
-            let response2 = CharacterResponse(info: pageInfo2, results: [secondCharacter])
-            mockAPIService.mockResponse = response2
-            
-            // Действие: загружаем следующую страницу
-            await viewModel.loadMoreCharactersIfNeeded(currentCharacter: firstCharacter)
-            
-            // Ждем небольшую паузу для асинхронной операции
-            try? await Task.sleep(nanoseconds: 100_000_000)
-            
-            // Проверки
-            XCTAssertEqual(viewModel.characters.count, 2)
-            XCTAssertEqual(viewModel.characters.last?.name, "Morty Smith")
-            XCTAssertNil(viewModel.nextPageURL)
-            XCTAssertFalse(viewModel.isLoading)
-        }
+        // Подготовка: первая загрузка с одной страницей
+        let firstCharacter = Character(id: 1, name: "Rick Sanchez", status: "Alive", species: "Human", type: "", gender: "Male", origin: LocationInfo(name: "Earth", url: ""), location: LocationInfo(name: "Earth", url: ""), image: "", episode: [], url: "", created: "")
+        let pageInfo1 = PageInfo(count: 2, pages: 2, next: "https://api.example.com/characters?page=2", prev: nil)
+        let response1 = CharacterResponse(info: pageInfo1, results: [firstCharacter])
+        mockAPIService.mockResponse = response1
+        
+        // Загружаем первую страницу
+        await viewModel.loadCharacters()
+        
+        // Проверяем загрузку первой страницы
+        XCTAssertEqual(viewModel.characters.count, 1)
+        XCTAssertEqual(viewModel.characters.first?.name, "Rick Sanchez")
+        XCTAssertEqual(viewModel.nextPageURL, "https://api.example.com/characters?page=2")
+        
+        // Подготовка: вторая страница
+        let secondCharacter = Character(id: 2, name: "Morty Smith", status: "Alive", species: "Human", type: "", gender: "Male", origin: LocationInfo(name: "Earth", url: ""), location: LocationInfo(name: "Earth", url: ""), image: "", episode: [], url: "", created: "")
+        let pageInfo2 = PageInfo(count: 2, pages: 2, next: nil, prev: "https://api.example.com/characters?page=1")
+        let response2 = CharacterResponse(info: pageInfo2, results: [secondCharacter])
+        mockAPIService.mockResponse = response2
+        
+        await viewModel.loadMoreCharactersIfNeeded(currentCharacter: firstCharacter)
+        
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        
+        XCTAssertEqual(viewModel.characters.count, 2)
+        XCTAssertEqual(viewModel.characters.last?.name, "Morty Smith")
+        XCTAssertNil(viewModel.nextPageURL)
+        XCTAssertFalse(viewModel.isLoading)
+    }
     
     func testClearCacheAsync() async {
         // Подготовка: кэш содержит данные
@@ -144,9 +139,6 @@ final class CharactersViewModelTests: XCTestCase {
     }
 }
 
-
-
-
 class MockDataCache: DataCacheProtocol {
     var cachedData: [String: Data] = [:]
     
@@ -171,9 +163,6 @@ class MockDataCache: DataCacheProtocol {
         cachedData.removeAll()
     }
 }
-
-
-
 
 enum MockAPIError: Error, LocalizedError {
     case failedFetching
