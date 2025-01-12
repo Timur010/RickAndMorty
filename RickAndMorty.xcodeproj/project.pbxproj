@@ -12,8 +12,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		391B9E232D330DBB002B0D9A /* RickAndMortyTests */ = {
-            isa = PBXGroup;
+		399351532D345A5E002D38ED /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
 			containerPortal = 392DAB1A2D303E6900AD8481 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 392DAB212D303E6900AD8481;
@@ -231,7 +231,7 @@
 		391B9E272D330DBB002B0D9A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 392DAB212D303E6900AD8481 /* RickAndMorty */;
-			targetProxy = 391B9E262D330DBB002B0D9A /* PBXContainerItemProxy */;
+			targetProxy = 399351532D345A5E002D38ED /* PBXContainerItemProxy */;
 		};
 		391B9E4C2D331141002B0D9A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -246,6 +246,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WX7Z7T8KYD;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				MARKETING_VERSION = 1.0;
@@ -264,6 +265,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WX7Z7T8KYD;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				MARKETING_VERSION = 1.0;
