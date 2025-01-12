@@ -28,10 +28,10 @@ jobs:
 #      - name: Run SwiftLint
 #        run: swiftlint
 
-      - name: Run SwiftFormat
-        run: |
-          brew reinstall swiftformat
-          swiftformat .
+#      - name: Run SwiftFormat
+#        run: |
+#          brew reinstall swiftformat
+#          swiftformat .
           
       - name: Build and Test
         run: |
