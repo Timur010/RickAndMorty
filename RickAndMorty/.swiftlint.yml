@@ -1,23 +1,37 @@
-disabled_rules:
-  - trailing_whitespace
-
-opt_in_rules:
-  - empty_count
-  - sorted_imports
-  - operator_usage_whitespace
-  - explicit_self
-
-indentation: 2
+included:
+  - RickAndMorty
+excluded:
+  - Pods
+  - RickAndMortyTests
 
 line_length:
   warning: 120
   error: 200
+  ignores_comments: true
+  ignores_urls: true
 
-file_length:
-  warning: 400
-  error: 1000
+function_body_length:
+  warning: 50
+  error: 100
 
-excluded:
-  - Pods
-  - DerivedData
-  - .build
+trailing_whitespace:
+  ignores_empty_lines: true
+  ignores_comments: true
+
+indentation:
+  spaces: 4
+
+vertical_whitespace:
+  max_empty_lines: 1
+
+force_cast: warning
+force_try: warning
+
+identifier_name:
+  min_length: 2
+  max_length: 40
+
+opted_in_rules:
+  - empty_count
+  - empty_string
+  - redundant_nil_coalescing
