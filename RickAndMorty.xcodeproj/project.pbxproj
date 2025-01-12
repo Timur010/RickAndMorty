@@ -42,7 +42,7 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		391B9E232D330DBB002B0D9A /* RickAndMortyTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
+			isa = PBXGroup;
 			path = RickAndMortyTests;
 			sourceTree = "<group>";
 		};
