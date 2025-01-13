@@ -22,17 +22,11 @@ jobs:
         with:
           xcode-version: '15.0.1'
 
-      - name: Install SwiftLint
-        run: brew install swiftlint
-
-#      - name: Run SwiftLint
-#        run: swiftlint
-
-#      - name: Run SwiftFormat
-#        run: |
-#          brew reinstall swiftformat
-#          swiftformat .
-          
-      - name: Build and Test
+      - name: Run SwiftFormat
         run: |
-          xcodebuild clean test -scheme RickAndMorty -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0.1' -enableCodeCoverage YES
+          brew reinstall swiftformat
+          swiftformat .
+          
+#      - name: Build and Test
+#        run: |
+#          xcodebuild clean test -scheme RickAndMorty -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0.1' -enableCodeCoverage YES

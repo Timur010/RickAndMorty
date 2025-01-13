@@ -1,10 +1,3 @@
-//
-//  RickAndMortyApp.swift
-//  RickAndMorty
-//
-//  Created by Timur Kadiev on 09.01.2025.
-//
-
 import SwiftUI
 import Alamofire
 

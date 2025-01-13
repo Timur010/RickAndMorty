@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CharacterListView: View {
     @EnvironmentObject var viewModel: CharactersViewModel
-
+    
     var body: some View {
         List {
             charactersSection
@@ -26,7 +26,8 @@ extension CharacterListView {
                 .onAppear {
                     if shouldLoadMoreCharacters(for: character) {
                         Task {
-                            await viewModel.loadCharacters()
+                            await viewModel.loadMoreCharactersIfNeeded(currentCharacter: character)
+
                         }
                     }
                 }
