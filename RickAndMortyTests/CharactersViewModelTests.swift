@@ -12,7 +12,6 @@ final class CharactersViewModelTests: XCTestCase {
         super.setUp()
         mockAPIService = MockAPIService()
         mockDataCache = MockDataCache()
-        // Initialize with loadInitialData set to false for tests
         viewModel = CharactersViewModel(apiService: mockAPIService, dataCache: mockDataCache, loadInitialData: false)
     }
     

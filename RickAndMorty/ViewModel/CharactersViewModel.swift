@@ -24,7 +24,7 @@ class CharactersViewModel: ObservableObject {
             Task { @MainActor in
                 await loadCachedData()
                 if self.characters.isEmpty {
-                    await loadCharacters() 
+                    await loadCharacters()
                 }
             }
         }
@@ -48,30 +48,10 @@ class CharactersViewModel: ObservableObject {
     
     func clearCacheAsync() async {
         guard !isLoading else { return }
-        
         await dataCache.clearCacheAsync(for: cacheKey)
+        characters = []
         nextPageURL = nil
-        isLoading = true
-        isFetching = true
-        
-        do {
-            let response = try await apiService.fetchCharacters(nextURL: nextPageURL)
-            characters = response.results
-            nextPageURL = response.info.next
-            
-            let cachedData = CachedCharacters(
-                characters: characters,
-                nextPageURL: nextPageURL
-            )
-            await dataCache.cacheDataAsync(cachedData, for: cacheKey)
-        } catch let error as APIError {
-            errorMessage = error.localizedDescription
-        } catch {
-            errorMessage = APIError.unknownError.localizedDescription
-        }
-        
-        isLoading = false
-        isFetching = false
+        await loadCharacters()
     }
     
     func loadCachedData() async {

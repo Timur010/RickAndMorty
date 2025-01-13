@@ -27,5 +27,6 @@ struct CharacterCellView: View {
                 LocationView(locationName: character.origin.name)
             }
         }
+        .padding(.horizontal, 24)
     }
 }

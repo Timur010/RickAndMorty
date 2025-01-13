@@ -21,33 +21,13 @@ struct RemoteImageView: View {
                 ProgressView()
                     .frame(width: geometry.size.width, height: geometry.size.width)
                     .onAppear {
-                        loadImage()
+                        // Use ImageLoadingService instead of local functions
+                        ImageLoadingService.shared.loadImage(from: imageURL) { loadedImage in
+                            self.image = loadedImage
+                        }
                     }
             }
         }
         .aspectRatio(1, contentMode: .fit)
-    }
-    
-    private func loadImage() {
-        ImageCache.shared.getImage(for: imageURL) { cachedImage in
-            if let image = cachedImage {
-                self.image = image
-            } else {
-                downloadImage()
-            }
-        }
-    }
-    
-    private func downloadImage() {
-        guard let url = URL(string: imageURL) else { return }
-        
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            if let data = data, let downloadedImage = UIImage(data: data) {
-                DispatchQueue.main.async {
-                    ImageCache.shared.cacheImage(downloadedImage, for: imageURL)
-                    self.image = downloadedImage
-                }
-            }
-        }.resume()
     }
 }
