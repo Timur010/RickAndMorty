@@ -1,21 +1,16 @@
-//
-//  ButtonStyle.swift
-//  RickAndMorty
-//
-//  Created by Timur Kadiev on 11.01.2025.
-//
-
 import SwiftUI
 
 struct CustomButtonStyle: ButtonStyle {
     var backgroundColor: Color = .blue
     var foregroundColor: Color = .white
     var cornerRadius: CGFloat = 17
-    var padding: CGFloat = 9
+    var paddingVertical: CGFloat = 9
+    var paddingHorizontal: CGFloat = 12
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .padding(padding)
+            .padding(.vertical, paddingVertical)
+            .padding(.horizontal,paddingHorizontal )
             .background(backgroundColor)
             .foregroundColor(foregroundColor)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))

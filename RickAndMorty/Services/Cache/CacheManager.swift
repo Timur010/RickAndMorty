@@ -1,9 +1,3 @@
-//
-//  CacheManager.swift
-//  RickAndMorty
-//
-//  Created by Timur Kadiev on 11.01.2025.
-
 import Foundation
 
 final class CacheManager {

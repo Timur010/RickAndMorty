@@ -1,6 +1,3 @@
-// ImageCache.swift
-// RickAndMorty
-
 import UIKit
 
 final class ImageCache {

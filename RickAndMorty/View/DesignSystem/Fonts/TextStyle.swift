@@ -1,10 +1,3 @@
-//
-//  TextStyle.swift
-//  RickAndMorty
-//
-//  Created by Timur Kadiev on 11.01.2025.
-//
-
 import SwiftUI
 
 struct LargeTitleStyle: ViewModifier {

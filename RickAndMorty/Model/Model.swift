@@ -1,10 +1,3 @@
-//
-//  Model.swift
-//  RickAndMorty
-//
-//  Created by Timur Kadiev on 09.01.2025.
-//
-
 import Foundation
 
 struct CharacterResponse: Codable {

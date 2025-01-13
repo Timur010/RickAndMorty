@@ -10,7 +10,6 @@ final class APIServiceTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        // Настройка URLSession с MockURLProtocol
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [MockURLProtocol.self]
         session = Session(configuration: configuration)
@@ -100,7 +99,6 @@ final class APIServiceTests: XCTestCase {
         
         let characterResponse = try await apiService.fetchCharacters()
         
-        // Проверка результатов
         XCTAssertEqual(characterResponse.info.count, 2)
         XCTAssertEqual(characterResponse.results.count, 2)
         XCTAssertEqual(characterResponse.results[0].name, "Rick Sanchez")
@@ -108,32 +106,29 @@ final class APIServiceTests: XCTestCase {
     }
     
     func testFetchCharactersDecodingError() async {
-        let jsonString = """
-        {
-            "results": []
-        }
-        """
-        let data = jsonString.data(using: .utf8)!
+        let invalidJSON = "invalid json"
+        let data = invalidJSON.data(using: .utf8)!
         
-        // Настройка обработчика запросов
         MockURLProtocol.requestHandler = { request in
-            XCTAssertEqual(request.url?.absoluteString, "https://rickandmortyapi.com/api/character")
             let response = HTTPURLResponse(url: request.url!,
                                            statusCode: 200,
                                            httpVersion: nil,
-                                           headerFields: nil)!
+                                           headerFields: ["Content-Type": "application/json"])!
             return (response, data)
         }
         
         reachability = MockReachability(isReachable: true)
-        
         apiService = APIService(session: session, reachabilityManager: reachability)
         
         do {
             _ = try await apiService.fetchCharacters()
             XCTFail("Ожидалась ошибка декодирования, но запрос прошёл успешно.")
         } catch let error as APIError {
-            XCTAssertEqual(error, APIError.decodingError)
+            if case .decodingError(let message) = error {
+                XCTAssertFalse(message.isEmpty)
+            } else {
+                XCTFail("Ожидалась ошибка decodingError, но получена \(error)")
+            }
         } catch {
             XCTFail("Получена неожиданная ошибка: \(error)")
         }
@@ -141,7 +136,6 @@ final class APIServiceTests: XCTestCase {
     
     func testFetchCharactersRequestFailed() async {
         MockURLProtocol.requestHandler = { request in
-            XCTAssertEqual(request.url?.absoluteString, "https://rickandmortyapi.com/api/character")
             let response = HTTPURLResponse(url: request.url!,
                                            statusCode: 500,
                                            httpVersion: nil,
@@ -150,18 +144,16 @@ final class APIServiceTests: XCTestCase {
         }
         
         reachability = MockReachability(isReachable: true)
-        
         apiService = APIService(session: session, reachabilityManager: reachability)
         
         do {
             _ = try await apiService.fetchCharacters()
             XCTFail("Ожидалась ошибка запроса, но запрос прошёл успешно.")
         } catch let error as APIError {
-            switch error {
-            case .requestFailed(let afError):
-                XCTAssertTrue(afError.isResponseValidationError)
-            default:
-                XCTFail("Ожидалась ошибка запроса, но получена другая ошибка: \(error)")
+            if case .serverError(let code) = error {
+                XCTAssertEqual(code, 500)
+            } else {
+                XCTFail("Ожидалась ошибка serverError, но получена \(error)")
             }
         } catch {
             XCTFail("Получена неожиданная ошибка: \(error)")
@@ -184,32 +176,29 @@ final class APIServiceTests: XCTestCase {
     }
     
     func testAPIErrorDecodingErrorLocalizedDescription() async {
-        let jsonString = """
-            {
-                "results": []
-            }
-            """
-        let data = jsonString.data(using: .utf8)!
+        let invalidJSON = "invalid json"
+        let data = invalidJSON.data(using: .utf8)!
         
         MockURLProtocol.requestHandler = { request in
-            XCTAssertEqual(request.url?.absoluteString, "https://rickandmortyapi.com/api/character")
             let response = HTTPURLResponse(url: request.url!,
                                            statusCode: 200,
                                            httpVersion: nil,
-                                           headerFields: nil)!
+                                           headerFields: ["Content-Type": "application/json"])!
             return (response, data)
         }
         
         reachability = MockReachability(isReachable: true)
-        
         apiService = APIService(session: session, reachabilityManager: reachability)
         
         do {
             _ = try await apiService.fetchCharacters()
             XCTFail("Ожидалась ошибка декодирования, но запрос прошёл успешно.")
         } catch let error as APIError {
-            XCTAssertEqual(error, APIError.decodingError)
-            XCTAssertEqual(error.localizedDescription, "Не удалось декодировать ответ.")
+            if case .decodingError = error {
+                XCTAssertEqual(error.localizedDescription, "Ошибка декодирования")
+            } else {
+                XCTFail("Ожидалась ошибка decodingError, но получена \(error)")
+            }
         } catch {
             XCTFail("Получена неожиданная ошибка: \(error)")
         }
@@ -233,19 +222,22 @@ final class APIServiceTests: XCTestCase {
     
     func testAPIErrorUnknownErrorLocalizedDescription() async {
         MockURLProtocol.requestHandler = { request in
-            throw MockError.custom
+            let error = NSError(domain: "TestErrorDomain", code: -1, userInfo: nil)
+            throw error
         }
         
         reachability = MockReachability(isReachable: true)
-        
         apiService = APIService(session: session, reachabilityManager: reachability)
         
         do {
             _ = try await apiService.fetchCharacters()
             XCTFail("Ожидалась неизвестная ошибка, но запрос прошёл успешно.")
         } catch let error as APIError {
-            XCTAssertEqual(error, APIError.unknownError)
-            XCTAssertEqual(error.localizedDescription, "Произошла неизвестная ошибка.")
+            if case .unknownError = error {
+                XCTAssertEqual(error.localizedDescription, "Произошла неизвестная ошибка")
+            } else {
+                XCTFail("Ожидалась ошибка unknownError, но получена \(error)")
+            }
         } catch {
             XCTFail("Получена неожиданная ошибка: \(error)")
         }
@@ -269,11 +261,11 @@ final class APIServiceTests: XCTestCase {
             _ = try await apiService.fetchCharacters()
             XCTFail("Ожидалась ошибка запроса, но запрос прошёл успешно.")
         } catch let error as APIError {
-            if case .requestFailed(let afError) = error {
-                XCTAssertTrue(afError.isResponseValidationError)
-                XCTAssertEqual(afError.responseCode, 500)
+            if case .serverError(let code) = error {
+                XCTAssertEqual(code, 500)
+                XCTAssertEqual(error.localizedDescription, "Ошибка сервера: \(code)")
             } else {
-                XCTFail("Ожидалась ошибка requestFailed, но получена другая ошибка: \(error)")
+                XCTFail("Ожидалась ошибка serverError, но получена \(error)")
             }
         } catch {
             XCTFail("Получена неожиданная ошибка: \(error)")

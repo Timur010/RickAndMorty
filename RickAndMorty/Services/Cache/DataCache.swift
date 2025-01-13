@@ -1,6 +1,3 @@
-// DataCache.swift
-// RickAndMorty
-
 import Foundation
 
 protocol DataCacheProtocol {
