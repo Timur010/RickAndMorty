@@ -21,8 +21,8 @@ struct CharacterCellView: View {
                     status: characterStatus
                 )
                 
-                WatchEpisodesButton(action: {
-                })
+                WatchEpisodesButton(imageName: "play", title: "Watch episodes") {
+                }
                 
                 LocationView(locationName: character.origin.name)
             }

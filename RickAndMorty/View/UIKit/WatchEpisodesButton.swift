@@ -1,13 +1,15 @@
 import SwiftUI
 
 struct WatchEpisodesButton: View {
+    let imageName: String
+    let title: String
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
             HStack {
-                Image("play")
-                Text("Watch episodes")
+                Image(imageName)
+                Text(title)
                     .regularTextStyle(color: .ramOrange)
             }
             .padding(0)
